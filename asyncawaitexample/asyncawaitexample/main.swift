@@ -19,7 +19,14 @@ protocol MyPresenter {
 final class MyPresenterImpl: MyPresenter {
     var task: Task<Void, Error>?
     weak var view: MyView?
-    var interactor: MyInteractor!
+    let interactor: MyInteractor
+
+    // nonisolated removes the main actor requirement when the module is constructed
+    // until our core classes are all async/await-compliant
+    nonisolated init(view: MyView, interactor: MyInteractor) {
+        self.view = view
+        self.interactor = interactor
+    }
 
     func viewDidLoad() {
         task = Task(priority: .background) { [weak self] in
@@ -56,7 +63,11 @@ protocol MyInteractor {
 }
 
 final class MyInteractorImpl: MyInteractor {
-    var service: MyService!
+    let service: MyService
+
+    nonisolated init(service: MyService) {
+        self.service = service
+    }
 
     func doWork(data: Data) async -> MyDomainModel {
         do {
